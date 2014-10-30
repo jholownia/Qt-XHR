@@ -7,7 +7,7 @@
 
 NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingData, QObject *parent)
 {
-    qDebug() << "Request header: " << request.rawHeader("My-Header");
+    qDebug() << "Request header: " << request.rawHeader("Test-Header");
 
     QObject::connect(this, SIGNAL(signalDataAvailable()), this, SLOT(dataAvailable()));
 
