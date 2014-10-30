@@ -22,7 +22,7 @@ QNetworkReply *NetworkAccessManager::createRequest(QNetworkAccessManager::Operat
 
         if (nr->hasRawHeader("Test-Header"))
         {
-            qDebug() << "[Qt] Sending Network Reply with Test-Header value: " + QString::number(nr->rawHeader("Test-Header").toInt());
+            qDebug() << "[Qt] Sending Network Reply with Test-Header value: " << nr->rawHeader("Test-Header");
         }
 
         return nr;

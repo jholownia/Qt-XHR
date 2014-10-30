@@ -26,7 +26,7 @@ public slots:
 
 signals:
     void signalDataAvailable();
-    void signalRunWorker(int);
+    void signalWorkerRun(int);
 
 protected:
     qint64 readData(char* data, qint64 maxSize);

@@ -4,22 +4,25 @@
 #include <QFileInfo>
 #include <QTimer>
 #include <QBuffer>
-#include <QDir>
 
 
 NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingData, QObject *parent) :
     m_path(request.url().path()),
     m_device(nullptr)
 {
+    // Set default path to index.html if no file name is provided
     m_path += (m_path[m_path.size() - 1] == '/') ? "index.html" : "";
 
+    // Check for Test-Header
     if (request.hasRawHeader("Test-Header"))
     {
         qDebug() << "[Qt] Received request with Test-Header value: " << request.rawHeader("Test-Header");
 
+        // Set Test-Header for this reply to the same value as the request
         this->setRawHeader("Test-Header", request.rawHeader("Test-Header"));
     }
 
+    // If it's an existing file, just open it and make data available
     if (QFile::exists("." + m_path))
     {
         QFile file("." + m_path);
@@ -39,18 +42,19 @@ NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingDa
     }
     else
     {
+        // Spawn a worker thread to make calculations, setData() slot will be called when it's done
         if (m_path == "/test.php" && request.hasRawHeader("Test-Header"))
         {
             Worker* worker = new Worker;
             worker->moveToThread(&m_workerThread);
 
             connect(&m_workerThread, SIGNAL(finished()), worker, SLOT(deleteLater()));
-            connect(this, SIGNAL(signalRunWorker(int)), worker, SLOT(doWork(int)));
+            connect(this, SIGNAL(signalWorkerRun(int)), worker, SLOT(doWork(int)));
             connect(worker, SIGNAL(signalResultReady(QByteArray)), this, SLOT(setData(QByteArray)));
 
             m_workerThread.start();
 
-            emit signalRunWorker(request.rawHeader("Test-Header").toInt());
+            emit signalWorkerRun(request.rawHeader("Test-Header").toInt());
         }
     }
 }

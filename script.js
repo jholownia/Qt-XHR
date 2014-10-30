@@ -11,8 +11,6 @@ function onXHRLoad(event) {
     {
       lbl.innerHTML += json.primes[p] + " ";
     }
-
-    // lbl.innerHTML = "Primes: " + json.primes;
 }
 
 function onXHRError(event) {
