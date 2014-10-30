@@ -6,6 +6,7 @@
 class NetworkAccessManager : public QNetworkAccessManager
 {
     Q_OBJECT
+
 public:
     explicit NetworkAccessManager(QNetworkAccessManager* manager, QObject *parent = 0);
 

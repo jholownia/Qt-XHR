@@ -22,3 +22,9 @@ HEADERS  += mainwindow.h \
     networkreply.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES +=
+
+OTHER_FILES += \
+    script.js \
+    index.html
