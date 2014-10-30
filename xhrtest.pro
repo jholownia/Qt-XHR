@@ -19,7 +19,8 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     networkaccessmanager.h \
-    networkreply.h
+    networkreply.h \
+    worker.h
 
 FORMS    += mainwindow.ui
 

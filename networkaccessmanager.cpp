@@ -19,7 +19,7 @@ QNetworkReply *NetworkAccessManager::createRequest(QNetworkAccessManager::Operat
     if( request.url().host() == "test" )
     {
         NetworkReply* nr = new NetworkReply(request, outgoingData);
-        qDebug() <<  nr->rawHeader("Test-Header");
+        qDebug() << "Test header: " << nr->rawHeader("Test-Header");
         return nr;
     }
 

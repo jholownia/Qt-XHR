@@ -3,36 +3,74 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QTimer>
+#include <QBuffer>
+#include <QDir>
 
 
-NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingData, QObject *parent)
+NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingData, QObject *parent) :
+    m_path(request.url().path()),
+    m_device(nullptr)
 {
+
+
     qDebug() << "Request header: " << request.rawHeader("Test-Header");
 
-    QObject::connect(this, SIGNAL(signalDataAvailable()), this, SLOT(dataAvailable()));
-
-    m_path = "." + request.url().path();
     m_path += (m_path[m_path.size() - 1] == '/') ? "index.html" : "";
 
-    m_file.setFileName(m_path);
-    if (!m_file.open(QFile::ReadOnly))
+    if (request.hasRawHeader("Test-Header"))
     {
-        qDebug() << m_file.errorString();
+        this->setRawHeader("Test-Header", request.rawHeader("Test-Header"));
     }
 
-    //QTimer::singleShot(0, this, SLOT(dataAvailable()));
+    if (QFile::exists("." + m_path))
+    {
+        QFile file("." + m_path);
 
-    dataAvailable();
+        if (!file.open(QFile::ReadOnly))
+        {
+            qCritical() << file.errorString();
+            return;
+        }
+
+        m_data = file.readAll();
+
+        m_device.reset(new QBuffer(&m_data));
+        m_device->open(QIODevice::ReadOnly);
+
+        QTimer::singleShot(0, this, SLOT(dataAvailable()));
+    }
+    else
+    {
+        if (m_path == "/test.php" && request.hasRawHeader("Test-Header"))
+        {
+            Worker* worker = new Worker;
+            worker->moveToThread(&m_workerThread);
+
+            connect(&m_workerThread, SIGNAL(finished()), worker, SLOT(deleteLater()));
+            connect(this, SIGNAL(signalRunWorker(int)), worker, SLOT(doWork(int)));
+            connect(worker, SIGNAL(signalResultReady(QByteArray)), this, SLOT(setData(QByteArray)));
+
+            m_workerThread.start();
+
+            emit signalRunWorker(request.rawHeader("Test-Header").toInt());
+        }
+    }
+}
+
+NetworkReply::~NetworkReply()
+{
+    m_workerThread.quit();
+    m_workerThread.wait();
 }
 
 void NetworkReply::dataAvailable()
 {
-    if (m_file.isOpen())
+    if (!m_device.isNull())
     {
         open(ReadOnly | Unbuffered);
 
         // Guess the ContentType
-        QFileInfo fileInfo(m_file);
+        QFileInfo fileInfo(m_path);
         QString extension = fileInfo.suffix();
         QVariant mimeType("text/plain");
 
@@ -49,13 +87,22 @@ void NetworkReply::dataAvailable()
 
         setHeader( QNetworkRequest::ContentTypeHeader, mimeType );
 
-        qint64 file_size = m_file.size();
-        qDebug() << "Path: " << m_path << " Length: " << file_size;
-        setHeader( QNetworkRequest::ContentLengthHeader, QVariant(file_size));
+        qint64 size = m_device->size();
+        qDebug() << "Path: " << m_path << " Length: " << size;
+        setHeader( QNetworkRequest::ContentLengthHeader, QVariant(size));
 
         emit readyRead();
         emit finished();
     }
+}
+
+void NetworkReply::setData(QByteArray data)
+{
+    m_data = data;
+    m_device.reset(new QBuffer(&m_data));
+    m_device->open(QIODevice::ReadOnly);
+
+    dataAvailable();
 }
 
 void NetworkReply::abort()
@@ -65,7 +112,7 @@ void NetworkReply::abort()
 
 qint64 NetworkReply::bytesAvailable() const
 {
-    return m_file.bytesAvailable() + QNetworkReply::bytesAvailable();
+    return m_device->bytesAvailable() + QNetworkReply::bytesAvailable();
 }
 
 bool NetworkReply::isSequential() const
@@ -75,6 +122,6 @@ bool NetworkReply::isSequential() const
 
 qint64 NetworkReply::readData(char *data, qint64 maxSize)
 {
-    qint64 length = m_file.read( data, maxSize );
+    qint64 length = m_device->read( data, maxSize );
     return length;
 }

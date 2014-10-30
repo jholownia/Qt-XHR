@@ -1,15 +1,33 @@
-var onReply = function() {
-	Document.findElementById("lbl").setAttribute("hidden", "false");
+function onXHRLoad(event) {
+    var repHeader = event.target.getResponseHeader("Test-Header");
+    alert("Response Test-Header: " + repHeader );
+
+    var json = JSON.parse(event.target.response);
+
+    var lbl = document.getElementById("lbl")
+    lbl.removeAttribute("hidden");
+    lbl.innerHTML = "Primes: " + json.primes;
 }
 
-var sendRequest = function() {
-	var xhr = new XMLHttpRequest;
-		
+function onXHRError(event) {
+    alert("error");
+}
+
+function sendRequest(){
+    var xhr = new XMLHttpRequest();
+
 	xhr.open("POST", "test.php");
 	xhr.responseType = "json";
-    xhr.setRequestHeader("Test-Header", "42");
-	
-	xhr.addEventListener("load", onReply);	
+
+    var limit = document.getElementById("limit").value;
+    xhr.setRequestHeader("Test-Header", limit);
+
+    alert("Request Test-Header: " + limit);
+
+    xhr.onload = onXHRLoad;
+    xhr.onerror = onXHRError;
+
+    xhr.send();
 }
 
 
