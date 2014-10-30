@@ -11,14 +11,12 @@ NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingDa
     m_path(request.url().path()),
     m_device(nullptr)
 {
-
-
-    qDebug() << "Request header: " << request.rawHeader("Test-Header");
-
     m_path += (m_path[m_path.size() - 1] == '/') ? "index.html" : "";
 
     if (request.hasRawHeader("Test-Header"))
     {
+        qDebug() << "[Qt] Received request with Test-Header value: " << request.rawHeader("Test-Header");
+
         this->setRawHeader("Test-Header", request.rawHeader("Test-Header"));
     }
 
@@ -88,7 +86,7 @@ void NetworkReply::dataAvailable()
         setHeader( QNetworkRequest::ContentTypeHeader, mimeType );
 
         qint64 size = m_device->size();
-        qDebug() << "Path: " << m_path << " Length: " << size;
+        qDebug() << "Loading: " << m_path << " Size: " << size;
         setHeader( QNetworkRequest::ContentLengthHeader, QVariant(size));
 
         emit readyRead();

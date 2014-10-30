@@ -4,8 +4,13 @@
 		<script src="script.js" language="JavaScript"></script>	
 	</head>
 	<body>
-                <h3>Press the button to send HTTPXMLRequest.</h3>
-                <p>blah blah blah</p>
+                <h3>Press the button to send xhr.</h3>
+                <p>
+                    Pressing the button will send XMLHTTPRequest with a custom header "Test-Header" set to the value
+                    from the input. This value will then be used to spawn a simple worker thread which searches for all
+                    prime numbers up to the given limit. A network reply is then created which contains JSON array of the
+                    results as well as the "Test-Header" with used value (except it doesn't).
+                </p>
 
                 <input id="limit" name="limit" type="number" value="42" min="3" max="2147483647">
 

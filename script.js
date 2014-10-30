@@ -6,7 +6,13 @@ function onXHRLoad(event) {
 
     var lbl = document.getElementById("lbl")
     lbl.removeAttribute("hidden");
-    lbl.innerHTML = "Primes: " + json.primes;
+    lbl.innerHTML = "Primes found: "
+    for (p in json.primes)
+    {
+      lbl.innerHTML += json.primes[p] + " ";
+    }
+
+    // lbl.innerHTML = "Primes: " + json.primes;
 }
 
 function onXHRError(event) {
