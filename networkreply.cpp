@@ -10,6 +10,11 @@ NetworkReply::NetworkReply(const QNetworkRequest &request, QIODevice *outgoingDa
     m_path(request.url().path()),
     m_device(nullptr)
 {
+    // Setup the request
+    setRequest(request);
+    setUrl(request.url());
+    setOperation(QNetworkAccessManager::PostOperation); // Post or Get?
+
     // Set default path to index.html if no file name is provided
     m_path += (m_path[m_path.size() - 1] == '/') ? "index.html" : "";
 
